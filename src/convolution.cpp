@@ -37,6 +37,10 @@ void Convolution::set(CudaHelper *helper,
 }
 
 void Convolution::forward(float *x, float *y, float *w) {
+    forward(x, y, w, CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM);
+}
+
+void Convolution::forward(float *x, float *y, float *w, cudnnConvolutionFwdAlgo_t algo) {
     cudnnTensorDescriptor_t x_desc;
     check_cudnn(cudnnCreateTensorDescriptor(&x_desc));
     check_cudnn(cudnnSetTensor4dDescriptor(x_desc,
@@ -124,7 +128,7 @@ void Convolution::forward(float *x, float *y, float *w) {
                                         w_desc,
                                         d_w,
                                         conv_desc,
-                                        CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM,
+                                        algo,
                                         d_workspace,
                                         workspace_size,
                                         &beta,

@@ -32,6 +32,7 @@ public:
              long height,
              long width);
     void forward(float *x, float *y, float *w);
+    void forward(float *x, float *y, float *w, cudnnConvolutionFwdAlgo_t algo);
     void backward(Matrix<float> *incoming_gradients, Matrix<float> *y, Matrix<float> *gradients);
 };
 

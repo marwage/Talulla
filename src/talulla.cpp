@@ -96,25 +96,44 @@ void convolution() {
         w[i] = distribution(generator);
     }
 
-    Convolution convolution_layer_1(&cuda_helper,
-                                    batch_size,
-                                    num_channels,
-                                    num_channels,
-                                    height,
-                                    width);
-    convolution_layer_1.forward(x, y_1, w);
+    cudnnConvolutionFwdAlgo_t algorithms[8] = {CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_GEMM,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_DIRECT,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_FFT,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_FFT_TILING,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD,
+                                              CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD_NONFUSED}; 
 
-    Convolution convolution_layer_2(&cuda_helper,
-                                    batch_size,
-                                    num_channels,
-                                    num_channels,
-                                    height,
-                                    width);
-    convolution_layer_2.forward(x, y_2, w);
 
-    double abs_diff = abs_difference(y_1, y_2, x_size);
-    std::cout << "Convolution" << std::endl;
-    std::cout << "Absolute difference " << abs_diff << std::endl;
+    for (long i = 0; i < 8; i = i + 1) {
+        try {
+            Convolution convolution_layer_1(&cuda_helper,
+                                            batch_size,
+                                            num_channels,
+                                            num_channels,
+                                            height,
+                                            width);
+            convolution_layer_1.forward(x, y_1, w, algorithms[i]);
+
+            Convolution convolution_layer_2(&cuda_helper,
+                                            batch_size,
+                                            num_channels,
+                                            num_channels,
+                                            height,
+                                            width);
+            convolution_layer_2.forward(x, y_2, w, algorithms[i]);
+
+            double abs_diff = abs_difference(y_1, y_2, x_size);
+
+            std::cout << "Algorithm " << i << std::endl;
+            std::cout << "Convolution" << std::endl;
+            std::cout << "Absolute difference " << abs_diff << std::endl;
+        }
+        catch (...) {
+            std::cout << "Algorithm " << i << " failed" << std::endl;
+        }
+    }
 }
 
 
